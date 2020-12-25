@@ -51,9 +51,9 @@ prob2 n | mod n 2 == 0 = div n 2
 --
 -- Для любой функции step и n == 1 ответом будет 0.
 prob3 :: (Integer -> Integer) -> Integer -> Integer
-prob3 step n | n == 1 = 0
-            | n > 1 = 1 + prob3 step (step n) 
-            | n < 1 = error "Argument exeption"
+prob3 _ 1 = 0
+prob3 step n = helper step n 0
+        where helper step n x = if step n == 1 then (x+1) else helper step (step n) (x+1) 
             
 
 
@@ -72,12 +72,10 @@ prob3 step n | n == 1 = 0
 --
 -- Число n по модулю не превосходит 10^5
 prob4 :: Integer -> Integer
-prob4 n | n == (-2) = 1
-        | n == (-1) = 0
-        | n == 0 = 1
-        | n == 1 = 1
-        | n > 0 = prob4 (n - 1) + prob4 (n - 2)
-        | n < 0 = prob4 (n + 2) - prob4 (n + 1) 
+prob4 (-1) = 0
+prob4 n | n < 0 = prob4 (-n -2) * (if even n then 1 else -1)
+        | otherwise = helper n 0 1 where helper 0 x y = y
+                                         helper a x y = helper (a-1) y (x+y)
 
 ------------------------------------------------------------
 -- PROBLEM #5
@@ -88,16 +86,14 @@ prob4 n | n == (-2) = 1
 -- Числа n и k положительны и не превосходят 10^8.
 -- Число 1 не считается простым числом
 prob5 :: Integer -> Integer -> Bool
-prob5 n k = if maximum (filter isPrime (prob21 n)) < k then True else False
+prob5 n k = maximum (getDivisors n) < k
 
-primeNums :: [Integer]
-primeNums = 2 : filter isPrime [3, 5 ..]
-
-isPrime :: Integer -> Bool
-isPrime n = all (\p -> mod n p /= 0) (takeWhile (\p -> p * p <= n) primeNums)
-
-
--- Вернуть список всех делителей числа N (1<=N<=10^10) в
--- порядке возрастания
-prob21 :: Integer -> [Integer]
-prob21 n = [x | x <- [1..n], n `rem` x == 0]
+getDivisors :: Integer -> [Integer]
+getDivisors  = helper 2
+  where
+    helper :: Integer -> Integer -> [Integer]
+    helper _ 1 = []
+    helper divisor n 
+      |divisor * divisor > n = [n]
+      |n `mod` divisor == 0 = divisor : helper divisor (n `div` divisor)
+      |otherwise = helper (divisor + 1) n

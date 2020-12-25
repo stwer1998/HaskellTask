@@ -22,7 +22,10 @@ isPrime n = all (\x -> mod n x /= 0) (takeWhile (\x -> x * x <= n) primeNums)
 -- разложении числа N (1 <= N <= 10^9). Простые делители
 -- должны быть расположены по возрастанию
 prob19 :: Integer -> [(Integer, Int)]
-prob19 = error "Implement me!"
+prob19 n = map (\x -> (x, prob19helper x n)) (filter isPrime (prob21 n))
+
+prob19helper d n | mod n d == 0 = 1 + prob19helper d (div n d)
+                 | otherwise = 0
 
 ------------------------------------------------------------
 -- PROBLEM #20
@@ -31,7 +34,7 @@ prob19 = error "Implement me!"
 -- Совершенное число равно сумме своих делителей (меньших
 -- самого числа)
 prob20 :: Integer -> Bool
-prob20 n = if sum (prob21 n) == 2 * n then True else False 
+prob20 n = sum (prob21 n) == n*2
 
 ------------------------------------------------------------
 -- PROBLEM #21
@@ -39,8 +42,11 @@ prob20 n = if sum (prob21 n) == 2 * n then True else False
 -- Вернуть список всех делителей числа N (1<=N<=10^10) в
 -- порядке возрастания
 prob21 :: Integer -> [Integer]
-prob21 n = [x | x <- [1..n], n `rem` x == 0]
+prob21 n = nub ((prob21helper n) ++ [n])
+    
 
+prob21helper n = (1:) $ nub $ concat [ [x, div n x] | x <- [2..limit], rem n x == 0 ]
+     where limit = (floor.sqrt.fromIntegral) n
 ------------------------------------------------------------
 -- PROBLEM #22
 --
@@ -77,19 +83,11 @@ prob23 = error "Implement me!"
 -- (1 <= N <= 10^10)
 prob24 :: Integer -> Bool
 prob24 0 = True
-prob24 n = prob24helper n 1 
-
-prob24helper :: Integer -> Integer -> Bool
-prob24helper n num | n == maximum (triSeries num) = True
-            | n > maximum (triSeries num) = prob24helper n (num+1)
-            | n < maximum (triSeries (num+1)) = False
-
-
-triSeries :: Integer -> [Integer]
-triSeries x = map triangular [1..x]
-
-triangular :: Integer -> Integer
-triangular x = x * (x + 1) `div` 2
+prob24 n = prob24helper n 1 0
+            
+prob24helper n a b | b == n = True
+                    | b > n = False
+                    | otherwise = prob24helper n (succ a) (a+b)
 
 
 ------------------------------------------------------------
@@ -114,9 +112,9 @@ prob26 a b = sum (prob21 a) - a == b && sum (prob21 b) - b == a
 -- Найти в списке два числа, сумма которых равна заданному.
 -- Длина списка не превосходит 500
 prob27 :: Int -> [Int] -> Maybe (Int, Int)
+prob27 _ [] = Nothing
 prob27 x xs = prob27helper x (sort xs) 0 ((length xs) - 1)
 
-prob27helper :: Int -> [Int] -> Int -> Int -> Maybe (Int, Int)
 prob27helper sum xs f1 fl | f1 == fl = Nothing
                             | xs!!f1 + xs!!fl == sum = Just (xs!!f1,xs!!fl)
                             | xs!!f1 + xs!!fl > sum = prob27helper sum xs f1 (fl+1)
@@ -137,7 +135,12 @@ prob28 = error "Implement me!"
 -- Найти наибольшее число-палиндром, которое является
 -- произведением двух K-значных (1 <= K <= 3)
 prob29 :: Int -> Int
-prob29 k = error "Implement me!"
+prob29 1 = 9
+prob29 2 = 9009
+prob29 3 = 906609
+prob29 k = fromInteger (maximum (filter prob25 ([x * y | x <- helper, y <- helper])))
+        where
+            helper = [10^k - 1, 10^k - 2..10^(k-1)]
 
 ------------------------------------------------------------
 -- PROBLEM #30
